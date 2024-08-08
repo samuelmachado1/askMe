@@ -348,7 +348,7 @@ func (h apiHandler) handleReactToMessage(w http.ResponseWriter, r *http.Request)
 
 	h.notifyClients(
 		Message{
-			Kind:   "message_reacted",
+			Kind:   "reaction_added",
 			RoomID: rawRoomID,
 			Value:  messageID,
 		},
@@ -395,7 +395,7 @@ func (h apiHandler) handleRemoveReactToMessage(w http.ResponseWriter, r *http.Re
 
 	h.notifyClients(
 		Message{
-			Kind:   "message_reacted",
+			Kind:   "reaction_removed",
 			RoomID: rawRoomID,
 			Value:  messageID,
 		},
