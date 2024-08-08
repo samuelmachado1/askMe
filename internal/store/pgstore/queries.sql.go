@@ -11,25 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const getMessage = `-- name: GetMessage :one
-SELECT
-  "id", "room_id", "message", "reaction_count", "answered"
-FROM messages
-`
-
-func (q *Queries) GetMessage(ctx context.Context) (Message, error) {
-	row := q.db.QueryRow(ctx, getMessage)
-	var i Message
-	err := row.Scan(
-		&i.ID,
-		&i.RoomID,
-		&i.Message,
-		&i.ReactionCount,
-		&i.Answered,
-	)
-	return i, err
-}
-
 const getRoom = `-- name: GetRoom :one
 SELECT
   "id", "theme"
@@ -41,6 +22,27 @@ func (q *Queries) GetRoom(ctx context.Context, id uuid.UUID) (Room, error) {
 	row := q.db.QueryRow(ctx, getRoom, id)
 	var i Room
 	err := row.Scan(&i.ID, &i.Theme)
+	return i, err
+}
+
+const getRoomMessageById = `-- name: GetRoomMessageById :one
+SELECT
+  "id", "room_id", "message", "reaction_count", "answered"
+FROM messages
+WHERE 
+  id = $1
+`
+
+func (q *Queries) GetRoomMessageById(ctx context.Context, id uuid.UUID) (Message, error) {
+	row := q.db.QueryRow(ctx, getRoomMessageById, id)
+	var i Message
+	err := row.Scan(
+		&i.ID,
+		&i.RoomID,
+		&i.Message,
+		&i.ReactionCount,
+		&i.Answered,
+	)
 	return i, err
 }
 

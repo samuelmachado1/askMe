@@ -16,10 +16,6 @@ VALUES
   ( $1 )
 RETURNING "id";
 
--- name: GetMessage :one
-SELECT
-  "id", "room_id", "message", "reaction_count", "answered"
-FROM messages;
 
 -- name: GetRoomMessages :many
 SELECT
@@ -27,6 +23,13 @@ SELECT
 FROM messages
 WHERE 
   room_id = $1;
+
+-- name: GetRoomMessageById :one
+SELECT
+  "id", "room_id", "message", "reaction_count", "answered"
+FROM messages
+WHERE 
+  id = $1;
 
 -- name: InsertMessage :one
 INSERT INTO messages
