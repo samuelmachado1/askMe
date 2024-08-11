@@ -91,17 +91,23 @@ func (h apiHandler) handleGetRooms(w http.ResponseWriter, r *http.Request) {
 }
 
 const (
-	MessageKingMessageCreated = "message_created"
+	MessageKindMessageCreated         = "message_created"
+	MessageKindMessageReactionAdded   = "reaction_added"
+	MessageKindMessageReactionRemoved = "reaction_removed"
 )
 
 type MessageMessageCreated struct {
 	ID      string `json:"id"`
 	Message string `json:"message"`
 }
+type MessageMessageReact struct {
+	ID            string `json:"id"`
+	ReactionCount any    `json:"reaction_count"`
+}
 type Message struct {
 	Kind   string `json:"kind"`
 	Value  any    `json:"value"`
-	RoomID string `json:"-"`
+	RoomID string `json:"room_id"`
 }
 
 func (h apiHandler) notifyClients(msg Message) {
@@ -230,7 +236,7 @@ func (h apiHandler) handleCreateRoomMessages(w http.ResponseWriter, r *http.Requ
 	_, _ = w.Write(data)
 
 	go h.notifyClients(Message{
-		Kind:   MessageKingMessageCreated,
+		Kind:   MessageKindMessageCreated,
 		RoomID: rawRoomID,
 		Value: MessageMessageCreated{
 			ID:      messageID.String(),
@@ -325,6 +331,7 @@ func (h apiHandler) handleReactToMessage(w http.ResponseWriter, r *http.Request)
 	}
 
 	rawMessageID := chi.URLParam(r, "message_id")
+
 	messageID, err := uuid.Parse(rawMessageID)
 	if err != nil {
 		http.Error(w, "invalid message id", http.StatusBadRequest)
@@ -341,16 +348,24 @@ func (h apiHandler) handleReactToMessage(w http.ResponseWriter, r *http.Request)
 	}
 
 	_, err = h.q.ReactToMessage(r.Context(), messageID)
+
 	if err != nil {
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
 		return
 	}
-
+	response, err := h.q.GetRoomMessageById(r.Context(), messageID)
+	if err != nil {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
 	h.notifyClients(
 		Message{
-			Kind:   "reaction_added",
+			Kind:   MessageKindMessageReactionAdded,
 			RoomID: rawRoomID,
-			Value:  messageID,
+			Value: MessageMessageReact{
+				ID:            messageID.String(),
+				ReactionCount: response.ReactionCount,
+			},
 		},
 	)
 }
@@ -392,12 +407,20 @@ func (h apiHandler) handleRemoveReactToMessage(w http.ResponseWriter, r *http.Re
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
 		return
 	}
+	response, err := h.q.GetRoomMessageById(r.Context(), messageID)
+	if err != nil {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
 
 	h.notifyClients(
 		Message{
-			Kind:   "reaction_removed",
+			Kind:   MessageKindMessageReactionRemoved,
 			RoomID: rawRoomID,
-			Value:  messageID,
+			Value: MessageMessageReact{
+				ID:            messageID.String(),
+				ReactionCount: response.ReactionCount,
+			},
 		},
 	)
 }
