@@ -35,9 +35,42 @@ Utilizar a API: Envie requisições para a API para integrar com outras aplicaç
 Documentação da API
 A documentação da API estará disponível em breve.
 
+
+sqlc generate -f ./internal/store/pgstore/sqlc.yaml
+
+
+
 Contribuindo
 Sinta-se à vontade para contribuir com o projeto! Abra uma issue caso encontre algum problema ou tenha alguma sugestão.
 
 Desenvolvido como projeto de estudo por:
 @samuelmachado1
 @techrastabr
+
+
+
+
+Servidor web escrito em GO
+
+go mod init (dentro do repo para iniciar um módulo do go)
+
+criar dependecias externas (Banco de dados) para isso criamos o
+compose yml
+
+Criamos as migrations com o jackc/tern (instar com go install)
+
+tern init para criar migrations
+
+Use o godotenv para carregar variáveis de ambiente
+
+
+Use SQLC para gerar entidades em GO 
+
+Use sqlc generate -f 
+
+Usamos go-chi/cors para resolver questoes de CORS
+
+
+Usamos a lib gorilla/websocket para implementaçao do WebSocket
+
+
